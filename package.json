@@ -1,0 +1,15 @@
+{
+    "name": "roku-profiler-parser",
+    "version": "0.0.1",
+    "description": "",
+    "main": "index.ts",
+    "author": "Luis Soares",
+    "license": "ISC",
+    "scripts": {
+        "lint": "tsc --noEmit -p .",
+        "start": "ts-node index.ts"
+    },
+    "devDependencies": {
+        "ts-node": "^10.9.2"
+    }
+}

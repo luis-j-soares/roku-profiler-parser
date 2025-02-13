@@ -26,14 +26,9 @@ export type PathElementProps = {
 };
 export class PathElement {
     public props?: PathElementProps = undefined;
-    public readonly metrics = {
-        memoryOperations: [] as MemoryOperation[],
-        cpuMeasurements: [] as CpuMeasurement[],
-        callCounts: [] as UInt32[],
-    }
-    public readonly children: PathElement[] = [];
-    public readonly params: any = {};
-
+    public readonly memoryOperations: MemoryOperation[] = [];
+    public readonly cpuMeasurements: CpuMeasurement[] = [];
+    public readonly callCounts: UInt32[] = [];
     constructor(public id: PathElementId) { }
 }
 
@@ -54,6 +49,12 @@ export type MemoryOperation = {
     lineOffset: UInt32;
     memAddress: UInt32;
     allocSize?: UInt32;
+};
+
+export type ProfilerBody = {
+    stringTable: Record<StringId, Utf8z>;
+    executableModules: Record<ModuleId, StringId>;
+    pathElements: Record<PathElementId, PathElement>;
 };
 
 export class ProfilerFile {
@@ -80,10 +81,10 @@ export class ProfilerFile {
         targetRunEndTimestamp: 0n,
     };
 
-    public body = {
-        stringTable: {} as Record<StringId, Utf8z>,
-        executableModules: {} as Record<ModuleId, StringId>,
-        pathElements: {} as Record<PathElementId, PathElement>,
+    public body: ProfilerBody = {
+        stringTable: {},
+        executableModules: {},
+        pathElements: {},
     };
 
     private lastMemoryOperationIndex = 0;
@@ -98,32 +99,23 @@ export class ProfilerFile {
         return el;
     }
 
-    public assignToParentPathElement(el: PathElement) {
-        if (el.props?.callerId) {
-            const parent = this.body.pathElements[el.props.callerId];
-            if (parent) {
-                parent.children.push(el);
-            }
-        }
-    }
-
     public addMemoryOperation(id: PathElementId, op: MemoryOperation): PathElement {
         const el = this.getPathElement(id);
         op.opIndex = ++this.lastMemoryOperationIndex;
-        el.metrics.memoryOperations.push(op);
+        el.memoryOperations.push(op);
         return el;
     }
 
     public addCpuMeasurement(id: PathElementId, op: CpuMeasurement): PathElement {
         const el = this.getPathElement(id);
         op.opIndex = ++this.lastCpuMeasurementIndex;
-        el.metrics.cpuMeasurements.push(op);
+        el.cpuMeasurements.push(op);
         return el;
     }
 
     public addCallCountEntry(id: PathElementId, value: UInt32): PathElement {
         const el = this.getPathElement(id);
-        el.metrics.callCounts.push(value);
+        el.callCounts.push(value);
         return el;
     }
 }

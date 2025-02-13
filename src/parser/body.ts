@@ -75,7 +75,6 @@ function handlePathElementEntry(file: ProfilerFile, reader: ByteReader, tag: big
             lineNumber: reader.readUInt32(),
             functionNameStringId: reader.readUInt32(),
         };
-        file.assignToParentPathElement(el);
     }
 }
 

@@ -83,7 +83,6 @@ function handleMemoryOperationEntry(file: ProfilerFile, reader: ByteReader, tag:
     const op = Number(tag >> 3n) & 0x3;
 
     const memoryOp: MemoryOperation = {
-        opIndex: -1,
         opType: op,
         lineOffset: file.header.lineSpecificData ? reader.readUInt32() : 0,
         memAddress: reader.readUInt32(),
@@ -95,7 +94,6 @@ function handleMemoryOperationEntry(file: ProfilerFile, reader: ByteReader, tag:
 function handleCpuMeasurementEntry(file: ProfilerFile, reader: ByteReader, tag: bigint) {
     const id = Number(tag >> 3n);
     const cpuMeasurement: CpuMeasurement = {
-        opIndex: -1,
         lineOffset: file.header.lineSpecificData ? reader.readUInt32() : 0,
         selfCpu: reader.readUInt32(),
         selfTime: reader.readUInt32(),

@@ -33,7 +33,6 @@ export class PathElement {
 }
 
 export type CpuMeasurement = {
-    opIndex: number;
     lineOffset: UInt32;
     selfCpu: UInt32;
     selfTime: UInt32;
@@ -44,17 +43,28 @@ export enum MemoryOperationType {
     FREE_REALLOC = 0x2,
 };
 export type MemoryOperation = {
-    opIndex: number;
     opType: MemoryOperationType;
     lineOffset: UInt32;
     memAddress: UInt32;
     allocSize?: UInt32;
 };
 
+export enum SeqType {
+    CPU_MEASUREMENT = 0x1,
+    MEMORY_OPERATION = 0x2,
+}
+export type PartialSequentialOp = {
+    seqType: SeqType;
+    pathElementId: PathElementId
+};
+export type CpuMeasurementObj = PartialSequentialOp & CpuMeasurement;
+export type MemoryOperationObj = PartialSequentialOp & MemoryOperation;
+
 export type ProfilerBody = {
     stringTable: Record<StringId, Utf8z>;
     executableModules: Record<ModuleId, StringId>;
     pathElements: Record<PathElementId, PathElement>;
+    sequentialOperations: (CpuMeasurementObj | MemoryOperationObj)[];
 };
 
 export class ProfilerFile {
@@ -85,10 +95,8 @@ export class ProfilerFile {
         stringTable: {},
         executableModules: {},
         pathElements: {},
+        sequentialOperations: [],
     };
-
-    private lastMemoryOperationIndex = 0;
-    private lastCpuMeasurementIndex = 0;
 
     public getPathElement(id: PathElementId): PathElement {
         let el = this.body.pathElements[id];
@@ -101,15 +109,15 @@ export class ProfilerFile {
 
     public addMemoryOperation(id: PathElementId, op: MemoryOperation): PathElement {
         const el = this.getPathElement(id);
-        op.opIndex = ++this.lastMemoryOperationIndex;
         el.memoryOperations.push(op);
+        this.body.sequentialOperations.push({ seqType: SeqType.MEMORY_OPERATION, pathElementId: id, ...op });
         return el;
     }
 
     public addCpuMeasurement(id: PathElementId, op: CpuMeasurement): PathElement {
         const el = this.getPathElement(id);
-        op.opIndex = ++this.lastCpuMeasurementIndex;
         el.cpuMeasurements.push(op);
+        this.body.sequentialOperations.push({ seqType: SeqType.CPU_MEASUREMENT, pathElementId: id, ...op });
         return el;
     }
 
